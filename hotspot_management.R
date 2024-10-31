@@ -520,12 +520,35 @@ ch4sum				              # size of emissions (Tg/year) from hotspots and total ar
 store_sulfate_curr		      # sulfate effect size
 store_sulfate_future		    # future sulfate effect size
 
+
+### Data reported in table 2
 st(as.data.frame(area.store))
 st(as.data.frame(ch4sum))
 
 
 # Sulfate post-process
 temp.sulf <- store_sulfate_curr
+
+store <- matrix(nrow=nrow(temp.sulf), ncol=8)
+store[,1] <- temp.sulf[,1] - temp.sulf[,2]
+store[,2] <- temp.sulf[,3] - temp.sulf[,4]
+store[,3] <- temp.sulf[,5] - temp.sulf[,6]
+store[,4] <- temp.sulf[,7] - temp.sulf[,8]
+store[,5] <- temp.sulf[,9] - temp.sulf[,10]
+store[,6] <- temp.sulf[,11] - temp.sulf[,12]
+store[,7] <- temp.sulf[,13] - temp.sulf[,14]
+store[,8] <- temp.sulf[,15] - temp.sulf[,16]
+
+colnames(store) <- c("Global sulfate reduction", "Global hotspot sulfate reduction", "Boreal sulfate reduction",
+                     "Boreal hotspot sulfate reduction","Temperate sulfate reduction","Temperate hotspot sulfate reduction",
+                     "Tropical sulfate reduction","Tropical hotspot sulfate reduction")
+
+## Data reported in table 3 - 2010
+st(as.data.frame(store))
+st(as.data.frame(temp.sulf))
+
+################################################
+
 temp.sulf <- store_sulfate_future
 
 store <- matrix(nrow=nrow(temp.sulf), ncol=8)
@@ -541,12 +564,14 @@ store[,8] <- temp.sulf[,15] - temp.sulf[,16]
 colnames(store) <- c("Global sulfate reduction", "Global hotspot sulfate reduction", "Boreal sulfate reduction",
                      "Boreal hotspot sulfate reduction","Temperate sulfate reduction","Temperate hotspot sulfate reduction",
                      "Tropical sulfate reduction","Tropical hotspot sulfate reduction")
+
+## Data reported in Table 3 - 2099
 st(as.data.frame(store))
 st(as.data.frame(temp.sulf))
 
 
 
-
+###############################
 
 
 # Figures for the paper:
@@ -640,196 +665,6 @@ ggplot() +
         axis.title = element_text(size = 10, face = 'plain'))
   
 dev.off()
-
-
-
-
-
-
-
-
-
-#biomes
-borstack <- rast(c(bor.ras))
-borstack.mean <- app(borstack, "mean")
-plot(borstack.mean, main="Percentage of time considered 'hotspot', (>95 percentile), ssp 2.6")
-
-tempstack <- rast(c(temp.ras))
-tempstack.mean <- app(tempstack, "mean")
-plot(tempstack.mean, main="Percentage of time considered 'hotspot', (>95 percentile), ssp 2.6")
-
-tropstack <- rast(c(trop.ras))
-tropstack.mean <- app(tropstack, "mean")
-plot(tropstack.mean, main="Percentage of time considered 'hotspot', (>95 percentile), ssp 2.6")
-
-#summary
-apply(ch4sum,2,mean)  
-apply(ch4sum,2,sd)  
-
-#already summarized.  Note that the biome areas don't add up quite to the global.  Why?
-area.store
-
-
-
-#########################
-#########################
-
-#  Characterizing hotspots
-#  Probably pull in the best estimate map and work from that.
-
-#upscale to methane resolution
-current.clim <- crop(current.clim, bor)
-current.clim <- resample(current.clim, bor, method="bilinear")
-future.clim <- crop(future.clim, bor)
-future.clim <- resample(future.clim, bor, method="bilinear")
-
-#BIO1 = Annual Mean Temperature 
-#BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
-#BIO3 = Isothermality (BIO2/BIO7) (×100)
-#BIO4 = Temperature Seasonality (standard deviation ×100)
-#BIO5 = Max Temperature of Warmest Month
-#BIO6 = Min Temperature of Coldest Month
-#BIO7 = Temperature Annual Range (BIO5-BIO6)
-#BIO8 = Mean Temperature of Wettest Quarter
-#BIO9 = Mean Temperature of Driest Quarter
-#BIO10 = Mean Temperature of Warmest Quarter
-#BIO11 = Mean Temperature of Coldest Quarter
-#BIO12 = Annual Precipitation
-#BIO13 = Precipitation of Wettest Month
-#BIO14 = Precipitation of Driest Month
-#BIO15 = Precipitation Seasonality (Coefficient of Variation)
-#BIO16 = Precipitation of Wettest Quarter
-#BIO17 = Precipitation of Driest Quarter
-#BIO18 = Precipitation of Warmest Quarter
-#BIO19 = Precipitation of Coldest Quarter
-
-nam <- c("Annual mean temp","Mean diurnal range","Isothermality (Mean monthly max-min)","Temp seasonality (SD*100)","Max temp warmest month",
-         "Min temp coldest month","Temp annual range","Mean temp, wettest quarter","Mean temp, driest quarter",
-         "Mean temp, warmest quarter","Mean temp, coldest quarter","Annual precip","Precip, wettest month",
-         "Precip, driest month","Precip seaonality","Precip, wettest quarter","Precip, driest quarter",
-         "Precip, warmest quarter","Precip, coldest quarter")
-
-
-#pull out temperature CHANGE map 
-temp.change.map <- (future.clim[[1]] - current.clim[[1]])
-
-
-#zonal stats work
-zonal(current.clim,bor,fun="mean", na.rm=T)
-
-#boreal
-bor.clim <- mask(current.clim,bor)			#mask for boreal
-bor.hot <- bor; bor.cold <- bor			#objects for submask
-bor.hot[bor.hot == 0] <- NA				#mask function requires NA's
-bor.clim.hot <- mask(bor.clim, bor.hot)
-bor.clim.cold <- mask(bor.clim, bor.cold)
-#dens.hot <- density(bor.clim.hot, plot=F); dens.cold <- density(bor.clim.cold, add=T)
-
-plot(bor.clim.cold)
-
-#big comparison plot
-index <- 1:length(nam)
-par(mfrow=c(4,5))
-
-for (i in index) {
-  density(bor.clim.hot[[i]], main=nam[i])
-  x <- density(bor.clim.cold[[i]], plot=F)
-  lines(x[[1]], col="red")
-  print(i)
-}
-
-plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-legend("topleft", legend =c('Hotspot (95th percentile, g/m2*year', 'Rest of landscape'), pch=16, pt.cex=3, cex=1.5, bty='n',
-       col = c("black","red"))
-mtext("Boreal", at=0.2, cex=2)
-
-
-#load other salient data - need to tie to management opportunities if possible
-#summary data on the hotspots
-
-
-#temperate
-temper.clim <- mask(current.clim,temper)			#mask for boreal
-temper.hot <- temper; temper.cold <- temper			#objects for submask
-temper.hot[temper.hot == 0] <- NA				#mask function requires NA's
-temper.clim.hot <- mask(temper.clim, temper.hot)
-temper.clim.cold <- mask(temper.clim, temper.cold)
-#dens.hot <- density(bor.clim.hot, plot=F); dens.cold <- density(bor.clim.cold, add=T)
-
-plot(temper.clim.cold)
-
-#big comparison plot
-index <- 1:length(nam)
-par(mfrow=c(4,5))
-
-for (i in index) {
-  density(temper.clim.hot[[i]], main=nam[i])
-  x <- density(temper.clim.cold[[i]], plot=F)
-  lines(x[[1]], col="red")
-  print(i)
-}
-
-plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-legend("topleft", legend =c('Hotspot (95th percentile, g/m2*year', 'Rest of landscape'), pch=16, pt.cex=3, cex=1.5, bty='n',
-       col = c("black","red"))
-mtext("Temperate", at=0.2, cex=2)
-
-
-
-#tropical
-trop.clim <- mask(current.clim,trop)			#mask for trop
-trop.hot <- trop; trop.cold <- trop			#objects for submask
-trop.hot[trop.hot == 0] <- NA				#mask function requires NA's
-trop.clim.hot <- mask(trop.clim, trop.hot)
-trop.clim.cold <- mask(trop.clim, trop.cold)
-#dens.hot <- density(bor.clim.hot, plot=F); dens.cold <- density(bor.clim.cold, add=T)
-
-plot(trop.clim.cold)
-
-#big comparison plot
-index <- 1:length(nam)
-par(mfrow=c(4,5))
-
-for (i in index) {
-  density(trop.clim.hot[[i]], main=nam[i])
-  x <- density(trop.clim.cold[[i]], plot=F)
-  lines(x[[1]], col="red")
-  print(i)
-}
-
-plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-legend("topleft", legend =c('Hotspot (95th percentile, g/m2*year', 'Rest of landscape'), pch=16, pt.cex=3, cex=1.5, bty='n',
-       col = c("black","red"))
-mtext("Tropical", at=0.2, cex=2)
-
-
-
-#global
-globe.clim <- mask(current.clim,globe)			#mask for trop
-globe.hot <- globe; globe.cold <- globe			#objects for submask
-globe.hot[globe.hot == 0] <- NA				#mask function requires NA's
-globe.clim.hot <- mask(globe.clim, globe.hot)
-globe.clim.cold <- mask(globe.clim, globe.cold)
-#dens.hot <- density(bor.clim.hot, plot=F); dens.cold <- density(bor.clim.cold, add=T)
-
-plot(globe.clim.cold)
-
-#big comparison plot
-index <- 1:length(nam)
-par(mfrow=c(4,5))
-
-for (i in index) {
-  density(globe.clim.hot[[i]], main=nam[i])
-  x <- density(globe.clim.cold[[i]], plot=F)
-  lines(x[[1]], col="red")
-  print(i)
-}
-
-plot(NULL ,xaxt='n',yaxt='n',bty='n',ylab='',xlab='', xlim=0:1, ylim=0:1)
-legend("topleft", legend =c('Hotspot (95th percentile, g/m2*year', 'Rest of landscape'), pch=16, pt.cex=3, cex=1.5, bty='n',
-       col = c("black","red"))
-mtext("Global", at=0.2, cex=2)
-
 
 
 
