@@ -50,6 +50,8 @@ x2099_4.5 <- rast("Data/ch4_flux_annual_sum_2099_rcp45.tif")
 
 ######################################
 
+set.seed(1234)
+
 # parameters
 b <- 0.95				# hotspot quantile
 fr <- 0.03			# fractional threshold removal of cells with minimal proportion wetland area (cells with <3% total wetland area)
@@ -130,9 +132,12 @@ colnames(store_sulfate_future) <- c("Global total Tg","Global with S Tg","Global
                                     "Boreal hotspot total Tg,","Boreal hotspot with S Tg","Temperate total Tg","Temperate with S Tg","Temperate hotspot total Tg","Temperate hotspot with S Tg",
                                     "Tropical total Tg","Tropical with S Tg","Tropical hotspot total Tg","Tropical hotspot with S Tg")
 
+##
+####
+###### CHANGE HERE FOR EACH SCENARIO
+####
+##
 
-
-#### CHANGE HERE FOR EACH SCENARIO
 ## Run for climate scenario 2.6
 future.clim <- future.clim2.6
 c61 <- x2010_2.6*a.m / 1e12		
@@ -668,7 +673,15 @@ dev.off()
 
 
 
+##### Supporting Info Figure 3
 
+plot for viewing
+par(mfrow=c(3,1))
+plot(sulf, main="S deposition: mg S/m2 per year")
+plot(sulf.perc, main="Percent potential reduction after S dep adjustment")
+ temp <- sulfate_potential_curr
+ temp[temp < 0] <- NA
+plot(temp, main="After temperature adjustment")
 
 
 
