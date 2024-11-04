@@ -1,7 +1,7 @@
 
 # Code for the manuscript: Managing the global wetland methane-climate feedback: A review of potential options
 # Authors: Emily Ury, Eve-Lyn Hinckley, Daniele Visioni and Brian Buma
-# Last update: October 29, 2024
+# Last update: November 4, 2024
 
 
 
@@ -50,7 +50,6 @@ x2099_4.5 <- rast("Data/ch4_flux_annual_sum_2099_rcp45.tif")
 
 ######################################
 
-set.seed(1234)
 
 # parameters
 b <- 0.95				# hotspot quantile
